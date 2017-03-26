@@ -13,10 +13,10 @@
     <ol class="panels">
       <li v-for="(item, index) in resume.config" v-show="item.field === selected">
         <div v-if="resume[item.field] instanceof Array">
-          <div class="subitem" v-for="subitem in resume[item.field]">
+          <div class="subitem" v-for="(subitem, i) in resume[item.field]">
             <div class="resumeField" v-for="(value, key) in subitem">
               <label>{{key}}</label>
-              <input type="text" :value="value">
+              <input type="text" :value="value" @input="changeResumeField(`${item.field}.${i}.${key}`, $event.target.value)">
             </div>
             <hr>
           </div>
@@ -24,12 +24,9 @@
         
         <div v-else class="resumeField" v-for="(value, key) in resume[item.field]">
           <label>{{key}}</label>
-          <input type="text" v-model="resume[item.field][key]">
+          <!-- <input type="text" v-model="resume[item.field][key]"> -->
+          <input type="text" :value="value" @input="changeResumeField(`${item.field}.${key}`, $event.target.value)">
         </div>
-      </li>
-      <li>
-        {{count}}
-        <button @click='add'>test</button>
       </li>
     </ol>
   </div>
@@ -38,53 +35,28 @@
   export default {
     name: 'ResumeEditor',
     computed: {
-      count() {
-        return this.$store.state.count
+      selected: {
+        get () {
+          return this.$store.state.selected
+        },
+        set (value) {
+          return this.$store.commit('switchTab', value)
+        }
+      },
+      resume () {
+        return this.$store.state.resume
       }
     },
     methods: {
-      add() {
-        this.$store.commit('increment')
+      changeResumeField (path, value) {
+        this.$store.commit('updateResume', {
+          path,
+          value
+        })
       }
     },
     data () {
       return {
-        selected: 'profile',
-        resume: {
-          config: [
-            {field: 'profile', icon: 'id', name: '个人简介'},
-            {field: 'history', icon: 'work', name: '工作经历'},
-            {field: 'education', icon: 'book', name: '教育经历'},
-            {field: 'projects', icon: 'heart', name: '项目经历'},
-            {field: 'awards', icon: 'cup', name: '获奖经历'},
-            {field: 'contacts', icon: 'phone', name: '联系方式'}
-          ],
-          profile: {
-            name: '',
-            city: '',
-            title: ''
-          },
-          history: [
-            {company: 'AL', content: '我的第二份工作是'},
-            {company: 'TX', content: '我的第一份工作是'}
-          ],
-          education: [
-           { school: 'AL', content: '文字' },
-           { school: 'TX', content: '文字' }
-          ],
-          projects: [
-           { name: 'project A', content: '文字' },
-           { name: 'project B', content: '文字' }
-          ],
-          awards: [
-           { name: 'awards A', content: '文字' },
-           { name: 'awards B', content: '文字' }
-          ],
-          contacts: [
-           { contact: 'phone', content: '13812345678' },
-           { contact: 'qq', content: '12345678' }
-          ]
-        }
       }
     }
   }
@@ -92,7 +64,7 @@
 </script>
 <style lang="scss" scoped>
 #resumeEditor {
-  width: 35%;
+  min-width: 35%;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: row;
